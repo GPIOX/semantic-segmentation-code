@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
-from base.registry import MY_MODEL as MODELS
+from base.registry import LOSSES as MODELS
 
 
 @MODELS.register_module()

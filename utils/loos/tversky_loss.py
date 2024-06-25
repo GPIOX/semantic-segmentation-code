@@ -6,10 +6,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from base.registry import MY_MODEL as MODELS
+from base.registry import LOSSES as MODELS
 from .utils import get_class_weight, weighted_loss
 
-
+LOSSES = MODELS
 @weighted_loss
 def tversky_loss(pred,
                  target,

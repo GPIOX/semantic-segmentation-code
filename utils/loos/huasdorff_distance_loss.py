@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from scipy.ndimage import distance_transform_edt as distance
 from torch import Tensor
 
-from base.registry import MY_MODEL as MODELS
+from base.registry import LOSSES as MODELS
 from .utils import get_class_weight, weighted_loss
 
 

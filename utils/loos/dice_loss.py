@@ -4,7 +4,7 @@ from typing import Union
 import torch
 import torch.nn as nn
 
-from base.registry import MY_MODEL as MODELS
+from base.registry import LOSSES as MODELS
 from .utils import weight_reduce_loss
 
 

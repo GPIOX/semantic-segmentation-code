@@ -1,3 +1,4 @@
+import mmengine
 from mmengine import Registry
 
 # manage data-related modules
@@ -9,10 +10,12 @@ MY_TRANSFORM = Registry(
     'transform', parent=TRANSFORM, locations=['dataset'])
 
 # manage model-related modules
-MODEL = Registry('runner')
-MY_MODEL = Registry(
+MODEL = mmengine.MODELS # Registry('runner')
+LOSSES = Registry(
     'runner', parent=MODEL, locations=['tools'])
 
 RUNNER = Registry('runner')
 MY_RUNNER = Registry(
     'runner', parent=RUNNER, locations=['tools'])
+# mangage all kinds of parameter schedulers like `MultiStepLR`
+PARAM_SCHEDULERS = mmengine.PARAM_SCHEDULERS

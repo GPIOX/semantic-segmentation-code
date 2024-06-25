@@ -5,6 +5,7 @@ import numpy as np
 import os
 import os.path as osp
 from base.registry import MY_DATASETS
+from torchvision import transforms
 
 _CLASS_NAME_ = [
     'Background',
@@ -54,6 +55,13 @@ class BaseDataset(torch.utils.data.Dataset):
         # 读取root下的train.txt文件
         self.file_list = load_txt(os.path.join(root, f"{split}.txt"))
 
+        if self.transform is None or self.target_transform is None:
+            self.transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ])
+            self.target_transform = torch.from_numpy
+
     def __getitem__(self, index):
         """
         根据索引获取数据集中的一个样本，包括图像和对应的掩码。
@@ -64,14 +72,13 @@ class BaseDataset(torch.utils.data.Dataset):
         output = {} # define return dict
         img_path = os.path.join(self.imgs_path, self.file_list[index])
         mask_path = os.path.join(self.masks, self.file_list[index])
-        img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
+        img = cv2.imread(img_path)
         mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
 
-        if self.transform is not None:
-            img = self.transform(img)
-            mask = torch.from_numpy(mask).long()
-            if len(mask.shape) == 2:
-                mask = mask.unsqueeze(mask, 0)
+        img = self.transform(img)
+        mask = self.target_transform(mask).long()
+        if len(mask.shape) == 2:
+            mask = mask.unsqueeze(0)
         
         # 将处理后的图像和掩码添加到输出字典中
         output['img'] = img # []
