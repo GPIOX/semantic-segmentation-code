@@ -21,8 +21,10 @@ param_scheduler = [
     )
 ]
 
-decode_loss = dict(
-            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)
+decode_loss = [
+    dict(
+        type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)
+]
 
 model_cfg = dict(
     type='Model', a=1, b=2)

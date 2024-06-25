@@ -77,12 +77,13 @@ class BaseDataset(torch.utils.data.Dataset):
 
         img = self.transform(img)
         mask = self.target_transform(mask).long()
-        if len(mask.shape) == 2:
-            mask = mask.unsqueeze(0)
+        # if len(mask.shape) == 2:
+        #     mask = mask.unsqueeze(0)
         
         # 将处理后的图像和掩码添加到输出字典中
         output['img'] = img # []
         output['mask'] = mask
+        output['filename'] = self.file_list[index]
 
         return output
 
@@ -102,10 +103,9 @@ if __name__ == '__main__':
         transforms.ToTensor(),
     ])
 
-    dataset = BaseDataset(transform=transform, root='E:\博士研究生资料\数据集\Marine Debris Datasets\marine-debris-fls-datasets-master\md_fls_dataset\data\watertank-segmentation', split='train')
+    dataset = BaseDataset(transform=transform, root='data/watertank-segmentation', split='train')
     print(len(dataset))
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=True)
-    for i, (img, mask) in enumerate(dataloader):
-        print(img.shape)
-        print(mask.shape)
+    for i, output in enumerate(dataloader):
+        assert output['img'].shape == output['mask'].shape, print(output['filename'])
         
