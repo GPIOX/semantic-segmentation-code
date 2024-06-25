@@ -19,3 +19,5 @@ MY_RUNNER = Registry(
     'runner', parent=RUNNER, locations=['tools'])
 # mangage all kinds of parameter schedulers like `MultiStepLR`
 PARAM_SCHEDULERS = mmengine.PARAM_SCHEDULERS
+
+LOGGER = Registry('logger', locations=['tools'])

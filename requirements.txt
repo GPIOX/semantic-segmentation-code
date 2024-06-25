@@ -1,0 +1,9 @@
+albumentations==1.4.10
+mmcv==2.2.0
+mmengine==0.10.4
+numpy==1.26.3
+opencv_python==4.10.0.84
+pytorch_lightning==2.3.0
+scipy==1.14.0
+torch==2.3.1+cu118
+torchvision==0.18.1+cu118

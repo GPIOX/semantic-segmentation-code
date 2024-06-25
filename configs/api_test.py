@@ -26,3 +26,10 @@ decode_loss = dict(
 
 model_cfg = dict(
     type='Model', a=1, b=2)
+
+logger = [
+    dict(
+        type='CSVLogger',
+        name='CSV',
+    ),
+]

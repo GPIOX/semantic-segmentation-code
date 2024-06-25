@@ -1,8 +1,7 @@
 trainer_cfg = dict(
-    accelerator="auto",
+    accelerator="cuda",
     strategy="auto",
     devices="auto",
-    logger=None,
     callbacks=None,
     fast_dev_run=False,
     max_epochs=100,

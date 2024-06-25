@@ -7,10 +7,10 @@ from mmcv.transforms.base import BaseTransform
 from mmengine.structures import PixelData
 
 from base.registry import MY_TRANSFORM as TRANSFORMS
-try:
-    from mmseg.structures import SegDataSample
-except ImportError:
-    SegDataSample = None
+# try:
+#     from mmseg.structures import SegDataSample
+# except ImportError:
+SegDataSample = None
 
 @TRANSFORMS.register_module()
 class PackSegInputs(BaseTransform):

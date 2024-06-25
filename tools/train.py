@@ -55,10 +55,11 @@ def main():
         # use config filename as default work_dir if cfg.work_dir is None
         cfg.work_dir = osp.join('./work_dirs',
                                 osp.splitext(osp.basename(args.config))[0])
-        os.makedirs(cfg.work_dir, exist_ok=True)
 
     model = Runner(cfg=cfg)
-    trainer = Trainer(cfg.trainer_cfg)
+    # Intergate logger
+    cfg.trainer_cfg['logger'] = model.plogger
+    trainer = Trainer(**cfg.trainer_cfg)
     trainer.fit(model, 
                 model._train_dataloader, 
                 model._test_dataloader)

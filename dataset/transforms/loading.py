@@ -11,15 +11,15 @@ from mmcv.transforms import LoadAnnotations as MMCV_LoadAnnotations
 from mmcv.transforms import LoadImageFromFile
 
 from base.registry import MY_TRANSFORM as TRANSFORMS
-try:
-    from mmseg.utils import datafrombytes
-except ImportError:
-    datafrombytes = None
+# try:
+#     from mmseg.utils import datafrombytes
+# except ImportError:
+datafrombytes = None
 
-try:
-    from osgeo import gdal
-except ImportError:
-    gdal = None
+# try:
+#     from osgeo import gdal
+# except ImportError:
+gdal = None
 
 
 @TRANSFORMS.register_module()

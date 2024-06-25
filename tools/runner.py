@@ -1,6 +1,9 @@
 from collections import OrderedDict
 from typing import Callable, Dict, List, Optional, Sequence, Union, Tuple
 import copy
+import os
+import time
+import datetime
 
 import torch
 import torch.nn as nn
@@ -12,10 +15,11 @@ from mmengine.utils import is_list_of
 from mmengine.optim import (OptimWrapper, OptimWrapperDict, _ParamScheduler,
                             build_optim_wrapper)
 
-from base.registry import (MY_DATASETS, MY_TRANSFORM, MY_RUNNER, PARAM_SCHEDULERS, MODEL)
+from base.registry import (MY_DATASETS, MY_TRANSFORM, MY_RUNNER, PARAM_SCHEDULERS, MODEL, LOGGER)
 from base.registry import LOSSES
 import model as Modelzoo
 import utils.loos
+import utils.logger as PLogger
 ConfigType = Union[Dict, Config, ConfigDict]
 
 @MY_RUNNER.register_module()
@@ -45,9 +49,12 @@ class Runner(pl.LightningModule):
         # Build loss
         self.loss_decode = self._build_loss_from_cfg(cfg.decode_loss)
 
-        # Build _build_optimizer
+        # Build optimizer
         self.optim_wrapper = self._build_optimizer(self.model, cfg.optim_wrapper)
         self.param_schedulers = self._build_param_scheduler(self.optim_wrapper, cfg.param_scheduler)
+
+        # Build logger
+        self.plogger = self._build_logger(cfg.logger, cfg.work_dir)
 
         # Save predict outputs
         self.validation_step_outputs = []
@@ -158,9 +165,15 @@ class Runner(pl.LightningModule):
         return param_schedulers
 
     def _build_loss_from_cfg(self, 
-                             loss_cfg: Dict):
-        if isinstance(loss_cfg, dict):
-            return LOSSES.build(loss_cfg)
+                             loss_cfg: List):
+        loss = []
+        if isinstance(loss_cfg, List):
+            for _loss in loss_cfg:
+                if isinstance(_loss, dict):
+                    _loss = copy.deepcopy(_loss)
+                    loss.append(LOSSES.build(_loss))
+
+        return loss
     
     def _build_model_from_cfg(self, 
                             model_cfg: Dict):
@@ -214,3 +227,23 @@ class Runner(pl.LightningModule):
         log_vars = OrderedDict(log_vars)  # type: ignore
 
         return loss, log_vars  # type: ignore
+    
+    def _build_logger(self, 
+                      logger_cfg: List[Dict], 
+                      work_dir: str):
+        plogger = []
+
+        work_dir = os.path.join(work_dir, 
+                                datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S'))
+        os.makedirs(work_dir, exist_ok=True)
+
+        for _logger in logger_cfg:
+            # if _logger['type'] != 'CSVLogger':
+            _logger['save_dir'] = work_dir
+            plogger.append(LOGGER.build(_logger))
+
+        return plogger
+    
+    def configure_optimizers(self):
+        return self.optim_wrapper.optimizer
+        
