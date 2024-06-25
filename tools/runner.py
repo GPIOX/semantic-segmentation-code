@@ -28,6 +28,7 @@ class Runner(pl.LightningModule):
         **kwargs
     ):
         super().__init__()
+
         # Build dataloader
         self.cfg = cfg
         self.workdir = work_dir
@@ -45,34 +46,53 @@ class Runner(pl.LightningModule):
         self.loss_decode = self._build_loss_from_cfg(cfg.decode_loss)
 
         # Build _build_optimizer
-        self.optimizer = self._build_optimizer(self.model, cfg.optim_wrapper)
-        self.param_schedulers = self._build_param_scheduler(self.optimizer, cfg.param_scheduler)
+        self.optim_wrapper = self._build_optimizer(self.model, cfg.optim_wrapper)
+        self.param_schedulers = self._build_param_scheduler(self.optim_wrapper, cfg.param_scheduler)
 
+        # Save predict outputs
         self.validation_step_outputs = []
+        self.test_step_outputs = []
 
     def forward(self, inputs):
         img = inputs['img']
-
-        return self.model(inputs)
-    def training_step(self, batch, batch_idx):
-        img = batch_idx['img']
-        mask = batch_idx['mask']
-
-        output = self(img)
-
+        mask = inputs['mask']
+        output = self.model(img)
+        
         loss, log_vars = self._parse_losses(self.loss_decode, output, mask)
+
+        return loss, log_vars, output
+    def training_step(self, batch, batch_idx):
+        """
+        训练步骤，执行一次训练迭代。
+        
+        在这个步骤中，首先通过调用self函数进行前向传播，计算损失、日志变量和输出。
+        然后，根据计算得到的损失更新网络参数。
+        接着，记录当前的训练损失和学习率。
+        最后，对每个学习率调度器调用step方法。
+        
+        参数:
+            - batch: 当前批次的数据。
+            - batch_idx: 当前批次的索引。
+        
+        返回:
+            - log_vars: 包含日志变量的字典。
+        """
+        loss, log_vars, output = self(batch)
+        self.optim_wrapper.update_params(loss)
+
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        lr = self.optim_wrapper.optimizer.param_groups[0]['lr']
+        self.log("lr", lr, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        
+        for _scheduler in self.param_schedulers:
+            _scheduler.step()
 
         return log_vars
     
     def validation_step(self, batch, batch_idx):
-        img = batch_idx['img']
-        mask = batch_idx['mask']
-
-        output = self(img)
-
-        loss, log_vars = self._parse_losses(self.loss_decode, output, mask)
-        self.log("val_loss", loss)
+        loss, log_vars, output = self(batch)
+        
+        self.log("val_loss", loss, logger=True, on_step=True)
 
     def on_validation_epoch_end(self):
         # all_preds = torch.stack(self.validation_step_outputs)
@@ -81,13 +101,9 @@ class Runner(pl.LightningModule):
         pass
 
     def test_step(self, batch, batch_idx):
-        img = batch_idx['img']
-        mask = batch_idx['mask']
-
-        output = self(img)
-
-        loss, log_vars = self._parse_losses(self.loss_decode, output, mask)
-        self.log("test_loss", loss)
+        loss, log_vars, output = self(batch)
+        self.log("test_loss", loss, logger=True, on_step=True)
+        # pass
 
     def on_test_epoch_end(self):
         # all_preds = torch.stack(self.validation_step_outputs)
@@ -115,6 +131,19 @@ class Runner(pl.LightningModule):
                             optimizer: OptimWrapper,
                             param_scheduler: Optional[Union[_ParamScheduler, Dict]] = None
         ) -> List[_ParamScheduler]:
+        """
+        构建参数调度器列表。
+
+        该方法用于根据传入的参数调度器配置，创建并返回一个参数调度器列表。
+        参数调度器用于在训练过程中动态调整模型参数的学习率或其他属性。
+
+        参数:
+            - optimizer: 优化器实例，参数调度器将与之关联。
+            - param_scheduler: 可选的参数调度器配置，可以是一个参数调度器实例或一个字典。
+        
+        返回:
+            - List[_ParamScheduler]: 一个包含构建的参数调度器实例的列表。
+        """
         param_schedulers = []
         for scheduler in param_scheduler:
             if isinstance(scheduler, dict):
