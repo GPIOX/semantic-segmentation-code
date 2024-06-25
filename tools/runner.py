@@ -42,11 +42,58 @@ class Runner(pl.LightningModule):
         self.model = self._build_model_from_cfg(cfg.model_cfg) # cfg.model
 
         # Build loss
-        self.loss = self._build_loss_from_cfg(cfg.decode_loss)
+        self.loss_decode = self._build_loss_from_cfg(cfg.decode_loss)
 
         # Build _build_optimizer
         self.optimizer = self._build_optimizer(self.model, cfg.optim_wrapper)
         self.param_schedulers = self._build_param_scheduler(self.optimizer, cfg.param_scheduler)
+
+        self.validation_step_outputs = []
+
+    def forward(self, inputs):
+        img = inputs['img']
+
+        return self.model(inputs)
+    def training_step(self, batch, batch_idx):
+        img = batch_idx['img']
+        mask = batch_idx['mask']
+
+        output = self(img)
+
+        loss, log_vars = self._parse_losses(self.loss_decode, output, mask)
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+
+        return log_vars
+    
+    def validation_step(self, batch, batch_idx):
+        img = batch_idx['img']
+        mask = batch_idx['mask']
+
+        output = self(img)
+
+        loss, log_vars = self._parse_losses(self.loss_decode, output, mask)
+        self.log("val_loss", loss)
+
+    def on_validation_epoch_end(self):
+        # all_preds = torch.stack(self.validation_step_outputs)
+        # # do something with all preds
+        # self.validation_step_outputs.clear()  # free memory
+        pass
+
+    def test_step(self, batch, batch_idx):
+        img = batch_idx['img']
+        mask = batch_idx['mask']
+
+        output = self(img)
+
+        loss, log_vars = self._parse_losses(self.loss_decode, output, mask)
+        self.log("test_loss", loss)
+
+    def on_test_epoch_end(self):
+        # all_preds = torch.stack(self.validation_step_outputs)
+        # # do something with all preds
+        # self.validation_step_outputs.clear()  # free memory
+        pass
 
     def _build_dataloador(self, 
                           dataset: Data.Dataset,

@@ -58,7 +58,10 @@ def main():
         os.makedirs(cfg.work_dir, exist_ok=True)
 
     model = Runner(cfg=cfg)
-    trainer = Trainer(model, model._train_dataloader, model._test_dataloader, cfg.trainer_cfg)
+    trainer = Trainer(cfg.trainer_cfg)
+    trainer.fit(model, 
+                model._train_dataloader, 
+                model._test_dataloader)
     
 
 if __name__ == '__main__':
