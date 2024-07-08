@@ -85,7 +85,7 @@ class Runner(pl.LightningModule):
             - log_vars: 包含日志变量的字典。
         """
         loss, log_vars, output = self(batch)
-        self.optim_wrapper.update_params(loss)
+        # self.optim_wrapper.update_params(loss)
 
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         lr = self.optim_wrapper.optimizer.param_groups[0]['lr']
@@ -95,6 +95,9 @@ class Runner(pl.LightningModule):
             _scheduler.step()
 
         return log_vars
+    
+    def backward(self, loss: torch.Tensor):
+        self.optim_wrapper.update_params(loss)
     
     def validation_step(self, batch, batch_idx):
         loss, log_vars, output = self(batch)

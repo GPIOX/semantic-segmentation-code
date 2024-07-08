@@ -3,7 +3,7 @@ import logging
 import os
 import os.path as osp
 from tools.runner import Runner
-
+import faulthandler
 from mmengine.config import Config, DictAction
 from mmengine.logging import print_log
 from pytorch_lightning import Trainer
@@ -58,17 +58,12 @@ def main():
 
     model = Runner(cfg=cfg)
 
-    for i, output in enumerate(model._train_dataloader):
-        assert output['img'].shape == output['mask'].shape, print(output['filename'])
-
-    for i, output in enumerate(model._test_dataloader):
-        assert output['img'].shape == output['mask'].shape, print(output['filename'])
     # Intergate logger
-    # cfg.trainer_cfg['logger'] = model.plogger
-    # trainer = Trainer(**cfg.trainer_cfg)
-    # trainer.fit(model, 
-    #             model._train_dataloader, 
-    #             model._test_dataloader)
+    cfg.trainer_cfg['logger'] = model.plogger
+    trainer = Trainer(**cfg.trainer_cfg)
+    trainer.fit(model, 
+                model._train_dataloader, 
+                model._test_dataloader)
     
 
 if __name__ == '__main__':

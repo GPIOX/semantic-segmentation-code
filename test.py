@@ -2,14 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models.resnet as resnet
-from base.registry import MODEL
+# from base.registry import MODEL
 
-@MODEL.register_module()
 class Model(nn.Module):
     def __init__(self, a, b):
         super().__init__()
-        self.backbone = resnet.resnet101()
-        self.decoder = nn.Conv2d(2048, 12, 1)
+        self.backbone = resnet.resnet18()
+        self.decoder = nn.Conv2d(512, 12, 1)
 
     def forward(self, x):
         B, C, H, W = x.shape
@@ -27,3 +26,8 @@ class Model(nn.Module):
 
         return x
 
+x = torch.randn(4, 3, 480, 320).cuda()
+model = Model(1,2).cuda() # Model(1, 2).cuda()
+# model.fc = nn.Conv2d(256, 12, 1).cuda()
+y = model(x)
+print(y.shape)

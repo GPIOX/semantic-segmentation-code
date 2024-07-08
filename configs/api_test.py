@@ -4,7 +4,7 @@ _base_ = [
 ]
 
 train_dataloader = dict(batch_size=4, num_workers=4)
-test_dataloader = dict(batch_size=1, num_workers=1)
+test_dataloader = dict(batch_size=1, num_workers=4)
 
 optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005)
 optim_wrapper = dict(type='OptimWrapper', optimizer=optimizer, clip_grad=None)
