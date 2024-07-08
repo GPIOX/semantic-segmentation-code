@@ -87,9 +87,9 @@ class Runner(pl.LightningModule):
         loss, log_vars, output = self(batch)
         # self.optim_wrapper.update_params(loss)
 
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train_loss", loss, on_step=True, prog_bar=True, logger=True)
         lr = self.optim_wrapper.optimizer.param_groups[0]['lr']
-        self.log("lr", lr, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("lr", lr, on_step=True, prog_bar=True, logger=True)
         
         for _scheduler in self.param_schedulers:
             _scheduler.step()
